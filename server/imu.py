@@ -1,42 +1,3 @@
-# imu.py MicroPython driver for the InvenSense inertial measurement units
-# This is the base class
-# Adapted from Sebastian Plamauer's MPU9150 driver:
-# https://github.com/micropython-IMU/micropython-mpu9150.git
-# Authors Peter Hinch, Sebastian Plamauer
-# V0.2 17th May 2017 Platform independent: utime and machine replace pyb
-
-'''
-mpu9250 is a micropython module for the InvenSense MPU9250 sensor.
-It measures acceleration, turn rate and the magnetic field in three axis.
-mpu9150 driver modified for the MPU9250 by Peter Hinch
-
-The MIT License (MIT)
-Copyright (c) 2014 Sebastian Plamauer, oeplse@gmail.com, Peter Hinch
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-'''
-
-# User access is now by properties e.g.
-# myimu = MPU9250('X')
-# magx = myimu.mag.x
-# accelxyz = myimu.accel.xyz
-# Error handling: on code used for initialisation, abort with message
-# At runtime try to continue returning last good data value. We don't want aircraft
-# crashing. However if the I2C has crashed we're probably stuffed.
-
 from utime import sleep_ms
 from machine import I2C
 from vector3d import Vector3d
@@ -50,21 +11,13 @@ class MPUException(OSError):
 
 
 def bytes_toint(msb, lsb):
-    '''
-    Convert two bytes to signed integer (big endian)
-    for little endian reverse msb, lsb arguments
-    Can be used in an interrupt handler
-    '''
+
     if not msb & 0x80:
         return msb << 8 | lsb  # +ve
     return - (((msb ^ 255) << 8) | (lsb ^ 255) + 1)
 
 
 class MPU6050(object):
-    '''
-    Module for InvenSense IMUs. Base class implements MPU6050 6DOF sensor, with
-    features common to MPU9150 and MPU9250 9DOF sensors.
-    '''
 
     _I2Cerror = "I2C failure when communicating with IMU"
     _mpu_addr = (104, 105)  # addresses of MPU9150/MPU6050. There can be two devices
@@ -126,9 +79,6 @@ class MPU6050(object):
 
     # wake
     def wake(self):
-        '''
-        Wakes the device.
-        '''
         try:
             self._write(0x01, 0x6B, self.mpu_addr)  # Use best clock source
         except OSError:
@@ -137,21 +87,14 @@ class MPU6050(object):
 
     # mode
     def sleep(self):
-        '''
-        Sets the device to sleep mode.
-        '''
         try:
             self._write(0x40, 0x6B, self.mpu_addr)
         except OSError:
             raise MPUException(self._I2Cerror)
         return 'asleep'
 
-    # chip_id
     @property
     def chip_id(self):
-        '''
-        Returns Chip ID
-        '''
         try:
             self._read(self.buf1, 0x75, self.mpu_addr)
         except OSError:

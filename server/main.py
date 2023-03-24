@@ -88,20 +88,7 @@ while True:
             r = urequests.post(url, data=data, headers=headers)
             print(data)
         
-            # print(r.status_code)
-            # print(r.content)
-            # text = r.text
-            # print(text) 
-            
-      
             r.close() # ferme la demande
             utime.sleep(1)  
         except Exception as e:
             print(e)
-    
-    
-               
-        # Following sleep statement makes values enought stable to be seen and
-        # read by a human from shell
-        
-
